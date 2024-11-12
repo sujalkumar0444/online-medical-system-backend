@@ -2,11 +2,15 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const dotenv = require("dotenv");
+dotenv.config();
 // dbconnect
-const { databaseconnect } = require("./dbconfig");
+const { mongoDBConnect } = require("./mongoConfig");
+const { postgreSQLConnect } = require("./pgconfig");
 
 // dbconnection
-databaseconnect();
+// mongoDBConnect();
+// postgreSQLConnect();
 
 //Routes
 
@@ -16,19 +20,15 @@ app.use(cors({
     origin: '*'
 }));
 
-// app.use(cors({
-//     origin: 'https://frontend-mauve-tau.vercel.app',
-//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//     allowedHeaders: ['Content-Type'],
-// }));
 
 // parsers
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 const TIMEOUT = 300000; 
-const server = app.listen(8800, () => {
-    console.log(`Server is running`);
+const PORT = process.env.PORT || 8800;
+const server = app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
 
 // Increase timeout

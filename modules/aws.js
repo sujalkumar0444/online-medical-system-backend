@@ -3,7 +3,7 @@ const fs = require("fs");
 const dotenv = require("dotenv");
 dotenv.config();
 
-
+// Function to map key-value blocks from Textract response
 function getKVMap(response) {
     const blocks = response.Blocks;
     const keyMap = {};
@@ -24,6 +24,7 @@ function getKVMap(response) {
     return { keyMap, valueMap, blockMap };
 }
 
+// Function to get the relationship between key-value pairs
 function getKVRelationship(keyMap, valueMap, blockMap) {
     const kvs = {};
     Object.keys(keyMap).forEach(blockId => {
@@ -36,6 +37,7 @@ function getKVRelationship(keyMap, valueMap, blockMap) {
     return kvs;
 }
 
+// Find the corresponding value block for a given key block
 function findValueBlock(keyBlock, valueMap) {
     if (keyBlock.Relationships) {
         for (const relationship of keyBlock.Relationships) {
@@ -49,6 +51,7 @@ function findValueBlock(keyBlock, valueMap) {
     return null;
 }
 
+// Extract text from the block map
 function getText(result, blocksMap) {
     let text = '';
     if (result && result.Relationships) {
@@ -68,20 +71,17 @@ function getText(result, blocksMap) {
     return text.trim();
 }
 
+// Main function to process the response
 async function main(data) {
-
     try {
         const response = data;
         const { keyMap, valueMap, blockMap } = getKVMap(response);
-
         const kvs = getKVRelationship(keyMap, valueMap, blockMap);
         console.log(kvs);
-        // console.log(kvs['Registration No:']);
-
+        return kvs;
     } catch (error) {
-        console.error('Error reading file:', error);
+        console.error('Error processing document:', error);
     }
-
 }
 
 // Configure AWS Textract
@@ -91,9 +91,9 @@ const textract = new AWS.Textract({
     secretAccessKey: process.env.SECRET_ACCESS_KEY,
 });
 
-// Function to call Textract for extracting key-value pairs
-async function analyzeDocument(filePath) {
-    const fileData = fs.readFileSync(filePath);
+// Function to call Textract for extracting key-value pairs from an uploaded file
+async function analyzeDocument(file) {
+    const fileData = file.buffer; // The buffer of the uploaded file (e.g., from a form submission)
 
     const params = {
         Document: {
@@ -104,13 +104,11 @@ async function analyzeDocument(filePath) {
 
     try {
         const response = await textract.analyzeDocument(params).promise();
-        main(response);
-        
-
+        return await main(response);
     } catch (error) {
         console.error("Error extracting document:", error);
     }
 }
 
-// Example usage
-analyzeDocument("cert.pdf");
+// Example usage: Upload a file using an HTTP form and pass it to `analyzeDocument`
+module.exports = { analyzeDocument };

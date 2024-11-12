@@ -1,5 +1,5 @@
-import CryptoJS from "crypto-js";
-import dotenv from 'dotenv';
+const CryptoJS = require("crypto-js");
+const dotenv = require("dotenv");
 dotenv.config();
 
 // function encryptJson(jsonObject) {
